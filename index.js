@@ -108,6 +108,13 @@ async function run() {
             res.send({ isSeller: user.role === 'Seller' })
         })
 
+        // -------- Cars Api -------- 
+        // Cars Catagory
+        app.get('/categories', async (req, res) => {
+            const query = {}
+            const result = await categoryCollection.find(query).toArray()
+            res.send(result)
+        })
 
     }
     finally {
