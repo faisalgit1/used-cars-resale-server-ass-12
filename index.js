@@ -115,7 +115,13 @@ async function run() {
             const result = await categoryCollection.find(query).toArray()
             res.send(result)
         })
+        app.post('/addcars', verifyJWT, verifySeller, async (req, res) => {
 
+            const body = req.body;
+            const result = await carCollection.insertOne(body);
+            res.send(result)
+
+        })
     }
     finally {
 
