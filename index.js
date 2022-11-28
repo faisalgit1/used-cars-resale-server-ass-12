@@ -93,6 +93,13 @@ async function run() {
                 console.log(err)
             }
         })
+        app.get('/users', async (req, res) => {
+
+            let query = {}
+            const result = await usersCollection.find(query).toArray();
+            res.send(result)
+        })
+
 
     }
     finally {
