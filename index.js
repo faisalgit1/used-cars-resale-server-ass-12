@@ -161,11 +161,23 @@ async function run() {
 
             res.send(result)
         })
-        //-------------- Booked Bikes ------------
+        //-------------- Booking Cars ------------
         app.post('/book', async (req, res) => {
             const body = req.body;
             const result = await bookingCarCollection.insertOne(body)
             res.send(result);
+
+        })
+
+        app.get('/buyers', async (req, res) => {
+            const email = req.query.email;
+            const query = {
+                sellerEmail: email
+
+            }
+
+            const result = await bookingCarCollection.find(query).toArray()
+            res.send(result)
 
         })
 
