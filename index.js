@@ -3,7 +3,7 @@ const cors = require('cors')
 const app = express();
 const port = process.env.PORT || 5000;
 const jwt = require('jsonwebtoken');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 
 
@@ -122,6 +122,19 @@ async function run() {
             res.send(result)
 
         })
+
+        // get car by user email
+        app.get('/allcars', async (req, res) => {
+            const email = req.query.email;
+            const query = {
+                sellerEmail: email
+            };
+            const cars = await carCollection.find(query).toArray()
+            res.send(cars)
+        })
+
+
+
     }
     finally {
 
