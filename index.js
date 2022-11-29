@@ -134,7 +134,19 @@ async function run() {
         })
 
 
+        app.put('/advertiseCar/:id', verifyJWT, verifySeller, async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const option = { upsert: true };
+            const updateDoc = {
+                $set: {
+                    advertise: 'true'
+                }
+            }
+            const result = await carCollection.updateOne(filter, updateDoc, option);
 
+            res.send(result)
+        })
     }
     finally {
 
