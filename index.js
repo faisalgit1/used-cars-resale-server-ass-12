@@ -40,6 +40,7 @@ async function run() {
         const usersCollection = client.db('resaleProducts').collection('users')
         const carCollection = client.db('resaleProducts').collection('cars')
         const categoryCollection = client.db('resaleProducts').collection('carCategories')
+        const bookingCarCollection = client.db('resaleProducts').collection('bookingcars')
 
         // Verify Seller 
         const verifySeller = async (req, res, next) => {
@@ -93,7 +94,7 @@ async function run() {
                 console.log(err)
             }
         })
-        app.get('/users', async (req, res) => {
+        app.get('/user', async (req, res) => {
 
             let query = {}
             const result = await usersCollection.find(query).toArray();
@@ -106,6 +107,13 @@ async function run() {
             const query = { email: email }
             const user = await usersCollection.findOne(query)
             res.send({ isSeller: user.role === 'Seller' })
+        })
+        // Check buyer
+        app.get('/user/buyer/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email }
+            const user = await usersCollection.findOne(query)
+            res.send({ isSeller: user.role === 'Buyer' })
         })
 
         // -------- Cars Api -------- 
@@ -121,6 +129,12 @@ async function run() {
             const result = await carCollection.insertOne(body);
             res.send(result)
 
+        })
+        // advertise bike
+        app.get('/alladvertisecar', async (req, res) => {
+            const query = {}
+            const result = await carCollection.find(query).toArray()
+            res.send(result)
         })
 
         // get car by user email
@@ -147,6 +161,14 @@ async function run() {
 
             res.send(result)
         })
+        //-------------- Booked Bikes ------------
+        app.post('/book', async (req, res) => {
+            const body = req.body;
+            const result = await bookingCarCollection.insertOne(body)
+            res.send(result);
+
+        })
+
     }
     finally {
 
