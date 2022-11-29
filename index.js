@@ -168,7 +168,22 @@ async function run() {
             res.send(result);
 
         })
+        app.get('/booked', verifyJWT, async (req, res) => {
 
+            const decoded = req.decoded;
+
+            if (decoded.email !== req.query.email) {
+                console.log('forbidden Access')
+                res.status(403).send({ message: 'Forbidend access' })
+            }
+
+            const email = req.query.email;
+            const query = {
+                buyerEmail: email
+            }
+            const result = await bookingCarCollection.find(query).toArray()
+            res.send(result)
+        })
         app.get('/buyers', async (req, res) => {
             const email = req.query.email;
             const query = {
