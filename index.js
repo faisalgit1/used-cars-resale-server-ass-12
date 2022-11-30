@@ -41,7 +41,16 @@ async function run() {
         const carCollection = client.db('resaleProducts').collection('cars')
         const categoryCollection = client.db('resaleProducts').collection('carCategories')
         const bookingCarCollection = client.db('resaleProducts').collection('bookingcars')
-
+        // verify Admin
+        const verifyAdmin = async (req, res, next) => {
+            const decodedEmail = req.decoded.email;
+            const query = { email: decodedEmail };
+            const user = await usersCollection.findOne(query);
+            if (user?.role !== "admin") {
+                return res.status(403).send({ message: "Admin Forbiddn Access" });
+            }
+            next();
+        };
         // Verify Seller 
         const verifySeller = async (req, res, next) => {
             const decodedEmail = req.decoded.email;
@@ -52,11 +61,41 @@ async function run() {
             }
             next();
         };
+        app.put('/verifyseller', verifyJWT, verifyAdmin, async (req, res) => {
+            const email = req.query.email;
+            const filter = {
+                email: email
+            }
+            const option = { upsert: true }
+            const updateDoc = {
+                $set: {
+                    verifySeller: true,
+                }
+            }
+
+            const result = await usersCollection.updateOne(filter, updateDoc, option)
+            res.send(result)
+
+        })
+
+        // make  user admin 
+        app.put('/user/admin/:id', verifyJWT, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) }
+            const option = { upsert: true };
+            const updateDoc = {
+                $set: {
+                    role: 'admin'
+                }
+            }
+            const result = await usersCollection.updateOne(filter, updateDoc, option)
+            res.send(result)
+        })
+
         app.put("/user/:email", async (req, res) => {
             try {
                 const email = req.params.email;
 
-                // check the req
                 const query = { email: email }
                 const existingUser = await usersCollection.findOne(query)
 
@@ -108,6 +147,20 @@ async function run() {
             const user = await usersCollection.findOne(query)
             res.send({ isSeller: user.role === 'Seller' })
         })
+        // Adimin
+        app.delete('/user/:id', verifyJWT, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await usersCollection.deleteOne(query);
+            res.send(result)
+        })
+        // Check Admin 
+        app.get("/user/admin/:email", async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+            const user = await usersCollection.findOne(query);
+            res.send({ isAdmin: user.role === 'admin' });
+        });
         // Check buyer
         app.get('/user/buyer/:email', async (req, res) => {
             const email = req.params.email;
