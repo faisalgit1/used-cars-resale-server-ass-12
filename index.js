@@ -183,7 +183,7 @@ async function run() {
             res.send(result)
 
         })
-        // advertise bike
+        // advertise car
         app.get('/alladvertisecar', async (req, res) => {
             const query = {}
             const result = await carCollection.find(query).toArray()
@@ -212,6 +212,20 @@ async function run() {
             }
             const result = await carCollection.updateOne(filter, updateDoc, option);
 
+            res.send(result)
+        })
+        // sold car api
+        app.put('/car/:id', verifyJWT, verifySeller, async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) }
+            const option = { upsert: true };
+            const updatedoc = {
+                $set: {
+                    status: 'sold',
+                    advertise: 'false',
+                }
+            }
+            const result = await carCollection.updateOne(filter, updatedoc, option);
             res.send(result)
         })
         //-------------- Booking Cars ------------
@@ -248,7 +262,7 @@ async function run() {
             res.send(result)
 
         })
-        // delete bike api
+        // delete car api
         app.delete('/car/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) }
