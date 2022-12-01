@@ -349,7 +349,7 @@ async function run() {
 run().catch(err => console.error(err));
 
 app.get('/', (req, res) => {
-    res.send('Used Product Sale Sites server is running')
+    res.send('Used Cars Sale Sites server is running')
 })
 
 app.listen(port, () => {
