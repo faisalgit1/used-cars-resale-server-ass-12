@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 // middle wares
 app.use(cors());
@@ -41,6 +42,8 @@ async function run() {
         const carCollection = client.db('resaleProducts').collection('cars')
         const categoryCollection = client.db('resaleProducts').collection('carCategories')
         const bookingCarCollection = client.db('resaleProducts').collection('bookingcars')
+        const allCheckOutCollection = client.db('resaleProducts').collection('checkout')
+
         // verify Admin
         const verifyAdmin = async (req, res, next) => {
             const decodedEmail = req.decoded.email;
@@ -183,6 +186,17 @@ async function run() {
             res.send(result)
 
         })
+
+        app.get('/cars/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = {
+
+                catagoryId
+                    : id
+            }
+            const result = await carCollection.find(query).toArray();
+            res.send(result)
+        })
         // advertise car
         app.get('/alladvertisecar', async (req, res) => {
             const query = {}
@@ -282,7 +296,51 @@ async function run() {
             const result = await carCollection.updateMany(filter, updateDoc, option)
             res.send(result)
         })
+        app.get("/bookings/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await bookingCarCollection.findOne(query);
+            res.send(result);
+        });
 
+        // Strip Api
+
+        app.post("/create-checkout-intent", async (req, res) => {
+            const booking = req.body;
+            const price = booking.carPrice;
+            const amount = parseInt(price) * 100;
+            console.log(price)
+            const paymentIntent = await stripe.paymentIntents.create({
+                currency: "usd",
+                amount: amount,
+
+                "payment_method_types": ["card"],
+            });
+            res.send({
+                clientSecret: paymentIntent.client_secret,
+            });
+        });
+
+        // CheckOut 
+        app.post('/checkout', async (req, res) => {
+            const body = req.body;
+            const id = body.bookingID;
+            // const filter = { id: ObjectId(id) }
+            const carcollectionQuery = { _id: ObjectId(id) }
+            const bookedCarQuery = {
+                carId: id
+            }
+            const option = { upsert: true }
+            const updateDoc = {
+                $set: {
+                    paid: 'true',
+                }
+            }
+            const updateCarCollection = await carCollection.updateOne(carcollectionQuery, updateDoc, option)
+            const updatebookingCollection = await bookingCarCollection.updateOne(bookedCarQuery, updateDoc, option)
+            const result = await allCheckOutCollection.insertOne(body)
+            res.send(result)
+        })
     }
     finally {
 
